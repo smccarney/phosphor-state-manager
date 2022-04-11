@@ -43,6 +43,9 @@ constexpr auto CHASSIS_STATE_POWERON_TGT = "obmc-chassis-poweron@0.target";
 constexpr auto RESET_HOST_SENSORS_SVC =
     "phosphor-reset-sensor-states@0.service";
 
+constexpr auto STOP_POWER_ON_LED_GROUP_SVC =
+    "obmc-led-group-stop@power_on.service";
+
 constexpr auto ACTIVE_STATE = "active";
 constexpr auto ACTIVATING_STATE = "activating";
 
@@ -150,6 +153,17 @@ void Chassis::determineInitialState()
 
                     // Reset host sensors since system is off now
                     startUnit(RESET_HOST_SENSORS_SVC);
+
+                    // Ensure power-on LEDs are off
+                    try
+                    {
+                        startUnit(STOP_POWER_ON_LED_GROUP_SVC);
+                    }
+                    catch (const std::exception& e)
+                    {
+                        error("Failed starting {SVC}: {ERROR}", "SVC",
+                              STOP_POWER_ON_LED_GROUP_SVC, "ERROR", e);
+                    }
 
                     setStateChangeTime();
 
