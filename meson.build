@@ -53,6 +53,9 @@ endif
 
 # globals shared across applications
 conf.set_quoted(
+    'BASE_FILE_DIR', '/run/openbmc/')
+
+conf.set_quoted(
     'HOST_RUNNING_FILE', '/run/openbmc/host@%d-on')
 
 conf.set_quoted(
