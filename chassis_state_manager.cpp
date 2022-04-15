@@ -168,6 +168,7 @@ void Chassis::determineInitialState()
                     setStateChangeTime();
 
                     // Generate file indicating AC loss occurred
+                    fs::create_directories(BASE_FILE_DIR);
                     auto size =
                         std::snprintf(nullptr, 0, CHASSIS_LOST_POWER_FILE, 0);
                     size++; // null
