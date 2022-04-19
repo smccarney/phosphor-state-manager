@@ -155,8 +155,14 @@ executable('phosphor-systemd-target-monitor',
             'systemd_target_monitor.cpp',
             'systemd_target_parser.cpp',
             'systemd_target_signal.cpp',
+            'utils.cpp',
             dependencies: [
-            sdbusplus, sdeventplus, phosphorlogging
+                CLI11,
+                libgpiod,
+                nlohmann_json,
+                phosphorlogging,
+                sdbusplus,
+                sdeventplus,
             ],
     implicit_include_directories: true,
     install: true
@@ -228,8 +234,14 @@ gmock = dependency('gmock', disabler: true, required: build_tests)
       executable('test_systemd_signal',
           './test/systemd_signal.cpp',
           'systemd_target_signal.cpp',
+          'utils.cpp',
           dependencies: [
-              gtest, sdbusplus, sdeventplus, phosphorlogging,
+              gtest,
+              libgpiod,
+              nlohmann_json,
+              phosphorlogging,
+              sdbusplus,
+              sdeventplus,
           ],
           implicit_include_directories: true,
           include_directories: '../'
