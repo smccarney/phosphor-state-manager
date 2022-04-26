@@ -157,7 +157,6 @@ executable('phosphor-systemd-target-monitor',
             'systemd_target_signal.cpp',
             'utils.cpp',
             dependencies: [
-                CLI11,
                 libgpiod,
                 nlohmann_json,
                 phosphorlogging,
