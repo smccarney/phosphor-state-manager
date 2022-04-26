@@ -158,7 +158,6 @@ executable('phosphor-systemd-target-monitor',
             'utils.cpp',
             dependencies: [
                 libgpiod,
-                nlohmann_json,
                 phosphorlogging,
                 sdbusplus,
                 sdeventplus,
@@ -237,7 +236,6 @@ gmock = dependency('gmock', disabler: true, required: build_tests)
           dependencies: [
               gtest,
               libgpiod,
-              nlohmann_json,
               phosphorlogging,
               sdbusplus,
               sdeventplus,
