@@ -141,6 +141,11 @@ void BMC::executeTransition(const Transition tranReq)
     // into the reboot process
     if (server::BMC::Transition::HardReboot == tranReq)
     {
+        // Put BMC state not NotReady when issuing a BMC reboot
+        // and stop monitoring for state changes
+        this->currentBMCState(BMCState::NotReady);
+        this->stateSignal.reset();
+
         auto method = this->bus.new_method_call(
             SYSTEMD_SERVICE, SYSTEMD_OBJ_PATH, SYSTEMD_INTERFACE, "Reboot");
         try
@@ -167,6 +172,11 @@ void BMC::executeTransition(const Transition tranReq)
         // needs to be irreversible once started
 
         method.append(sysdUnit, "replace-irreversibly");
+
+        // Put BMC state not NotReady when issuing a BMC reboot
+        // and stop monitoring for state changes
+        this->currentBMCState(BMCState::NotReady);
+        this->stateSignal.reset();
 
         try
         {
@@ -205,7 +215,6 @@ int BMC::bmcStateChange(sdbusplus::message::message& msg)
         try
         {
             this->bus.call(method);
-            this->stateSignal.release();
         }
         catch (const sdbusplus::exception::exception& e)
         {
@@ -213,7 +222,7 @@ int BMC::bmcStateChange(sdbusplus::message::message& msg)
         }
 
         // disable the system state change object as well
-        stateSignal.reset();
+        this->stateSignal.reset();
 
         return 0;
     }
