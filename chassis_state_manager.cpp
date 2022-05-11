@@ -46,6 +46,9 @@ constexpr auto RESET_HOST_SENSORS_SVC =
 constexpr auto STOP_POWER_ON_LED_GROUP_SVC =
     "obmc-led-group-stop@power_on.service";
 
+constexpr auto AUTO_POWER_RESTORE_SVC =
+    "phosphor-discover-system-state@0.service";
+
 constexpr auto ACTIVE_STATE = "active";
 constexpr auto ACTIVATING_STATE = "activating";
 
@@ -223,6 +226,8 @@ fail:
 
 void Chassis::determineStatusOfPower()
 {
+    auto initialPowerStatus = server::Chassis::currentPowerStatus();
+
     bool powerGood = determineStatusOfUPSPower();
     if (!powerGood)
     {
@@ -234,6 +239,18 @@ void Chassis::determineStatusOfPower()
     {
         // All checks passed, set power status to good
         server::Chassis::currentPowerStatus(PowerStatus::Good);
+
+        // If power status transitioned from bad to good and chassis power is
+        // off then call Auto Power Restart to see if the system should auto
+        // power on now that power status is good
+        if ((initialPowerStatus != PowerStatus::Good) &&
+            (server::Chassis::currentPowerState() == PowerState::Off))
+        {
+            info("power status transitioned from {START_PWR_STATE} to Good and "
+                 "chassis power is off, calling APR",
+                 "START_PWR_STATE", initialPowerStatus);
+            restartUnit(AUTO_POWER_RESTORE_SVC);
+        }
     }
 }
 
@@ -475,6 +492,19 @@ void Chassis::startUnit(const std::string& sysdUnit)
 {
     auto method = this->bus.new_method_call(SYSTEMD_SERVICE, SYSTEMD_OBJ_PATH,
                                             SYSTEMD_INTERFACE, "StartUnit");
+
+    method.append(sysdUnit);
+    method.append("replace");
+
+    this->bus.call_noreply(method);
+
+    return;
+}
+
+void Chassis::restartUnit(const std::string& sysdUnit)
+{
+    auto method = this->bus.new_method_call(SYSTEMD_SERVICE, SYSTEMD_OBJ_PATH,
+                                            SYSTEMD_INTERFACE, "RestartUnit");
 
     method.append(sysdUnit);
     method.append("replace");
