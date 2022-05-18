@@ -59,10 +59,13 @@ class Chassis : public ChassisInherit
                  std::bind(&Chassis::pohCallback, this), std::chrono::hours{1},
                  std::chrono::minutes{1})
     {
+
         subscribeToSystemdSignals();
 
         restoreChassisStateChangeTime();
 
+        // No default in PDI so start at Good, skip D-Bus signal for now
+        currentPowerStatus(PowerStatus::Good, true);
         determineInitialState();
 
         restorePOHCounter(); // restore POHCounter from persisted file
@@ -94,13 +97,17 @@ class Chassis : public ChassisInherit
 
     /** @brief Determine status of power provided by an Uninterruptible Power
      *         Supply into the system
+     *
+     *  @return True if UPS power is good, false otherwise
      */
-    void determineStatusOfUPSPower();
+    bool determineStatusOfUPSPower();
 
     /** @brief Determine status of power provided by the power supply units into
      *         the system
+     *
+     *  @return True if PSU power is good, false otherwise
      */
-    void determineStatusOfPSUPower();
+    bool determineStatusOfPSUPower();
 
     /**
      * @brief subscribe to the systemd signals
@@ -118,6 +125,15 @@ class Chassis : public ChassisInherit
      * @param[in] sysdUnit    - Systemd unit
      */
     void startUnit(const std::string& sysdUnit);
+
+    /** @brief Restart the systemd unit requested
+     *
+     * This function calls `RestartUnit` on the systemd unit given.
+     * This is useful when needing to restart a service that is already running
+     *
+     * @param[in] sysdUnit    - Systemd unit to restart
+     */
+    void restartUnit(const std::string& sysdUnit);
 
     /**
      * @brief Determine if target is active
